@@ -32,5 +32,4 @@ dependencies {
 
     implementation 'com.squareup.retrofit2:retrofit:2.1.0'
     implementation group: 'com.squareup.retrofit2', name: 'converter-gson', version: '2.1.0'
-
 }

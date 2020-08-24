@@ -1,5 +1,8 @@
 package com.example.studyretrofit2application;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.util.List;
 import java.util.Map;
 
@@ -7,11 +10,14 @@ import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.Field;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
@@ -37,7 +43,7 @@ public interface JsonPlaceHolderApi {
 //            @Query("_oder") String _oder
 //    );
 
-//  /posts/1/comments  // 1번 글에 달린 comment 모두 가져오기
+    //  /posts/1/comments  // 1번 글에 달린 comment 모두 가져오기
     @GET("posts/{id}/comments")
     Call<List<Comment>> getComments(@Path("id") int postId);
 
@@ -45,7 +51,7 @@ public interface JsonPlaceHolderApi {
     @GET()
     Call<List<Comment>> getComments(@Url String url);
 
-//  /posts?userId=1&sort=id&_oder=DESC  // 쿼리스트림, userId 여러개로 찾기
+    //  /posts?userId=1&sort=id&_oder=DESC  // 쿼리스트림, userId 여러개로 찾기
     @GET("posts")
     Call<List<Post>> getPosts(
 //            @Query("userId") Integer userId,
@@ -55,9 +61,9 @@ public interface JsonPlaceHolderApi {
             @Query("_oder") String _oder
     );
 
-//  Key=value 형태로 찾기
+    //  Key=value 형태로 찾기
     @GET("posts")
-    Call<List<Post>> getPosts(@QueryMap Map<String , String > parms);
+    Call<List<Post>> getPosts(@QueryMap Map<String, String> parms);
 
 ///////////////////////////////////////////////////////////////////////////// POST
 
@@ -78,8 +84,29 @@ public interface JsonPlaceHolderApi {
     @POST("posts")
     Call<Post> createPost(@FieldMap Map<String, String> fields);
 
-            Retrofit retrofit = new Retrofit.Builder()
+///////////////////////////////////////////////////////////////////////////// UPDATE
+
+    // null값 그대로 update (ex) 기존.title : 제목 ==> put.title : null ==> 출력값.title : null
+    @PUT("posts/{id}")
+    Call<Post> putPost(@Path("id") int id, @Body Post post);
+
+    // null값 변경되지 않음 기존값으로 대체 (ex) 기존.title : 제목 ==> patch.title : null ==> 출력값.title : 제목
+    @PATCH("posts/{id}")
+    Call<Post> patchPost(@Path("id") int id, @Body Post post);
+
+///////////////////////////////////////////////////////////////////////////// DELETE
+
+    @DELETE("posts/{id}")
+    Call<Void> deletePost(@Path("id") int id);
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+    // json 형태로 변환 (patch시에도 null 값 덮어 씌움)
+    Gson gson = new GsonBuilder().serializeNulls().create();
+
+    Retrofit retrofit = new Retrofit.Builder()
             .baseUrl("https://jsonplaceholder.typicode.com/")
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build();
 }

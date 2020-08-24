@@ -15,6 +15,7 @@ import java.util.Map;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.http.PATCH;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,7 +47,9 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
 //                getPosts();
 //                getComments();
-                createPost();
+//                createPost();
+//                updatePost();
+                deletePost();
             }
         });
     }
@@ -131,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
         call.enqueue(new Callback<Post>() {
             @Override
             public void onResponse(Call<Post> call, Response<Post> response) {
+
                 if (!response.isSuccessful()) {
                     tvTest.setText("code" + response.code());
                     return;
@@ -151,6 +155,56 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<Post> call, Throwable t) {
                 tvTest.setText(t.getMessage() );
+            }
+        });
+    }
+
+    private void updatePost() {
+        Post post = new Post(12, null, "updateTest");
+
+        Call<Post> call = jsonPlaceHolderApi.patchPost(1, post);
+
+        call.enqueue(new Callback<Post>() {
+            @Override
+            public void onResponse(Call<Post> call, Response<Post> response) {
+
+                if (!response.isSuccessful()) {
+                    tvTest.setText("code" + response.code());
+                    return;
+                }
+
+                Post postResponse = response.body();
+
+                String content = "";
+                content += "code : " + response.code() + "\n";
+                content += "id : " + postResponse.getId() + "\n";
+                content += "userId : " + postResponse.getUserId() + "\n";
+                content += "title : " + postResponse.getTitle() + "\n";
+                content += "text : " + postResponse.getText() + "\n\n";
+
+                tvTest.setText(content);
+            }
+
+            @Override
+            public void onFailure(Call<Post> call, Throwable t) {
+                tvTest.setText(t.getMessage() );
+            }
+        });
+    }
+
+    private void deletePost() {
+
+        Call<Void> call = jsonPlaceHolderApi.deletePost(5);
+
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                tvTest.setText("Code : " + response.code());
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                tvTest.setText(t.getMessage());
             }
         });
     }
