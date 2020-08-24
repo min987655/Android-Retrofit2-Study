@@ -8,13 +8,25 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.PATCH;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,24 +44,59 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         init();
+        initNetwork();
         initListener();
     }
 
     private void init(){
         btnTest = findViewById(R.id.btn_test);
         tvTest = findViewById(R.id.tv_test);
-        jsonPlaceHolderApi = JsonPlaceHolderApi.retrofit.create(JsonPlaceHolderApi.class);
+    }
+
+    private void initNetwork() {
+
+        // json 형태로 변환 (patch시에도 null 값 덮어 씌움, gson 변환 안할 시 null은 아예   안넘어 감.)
+        Gson gson = new GsonBuilder().serializeNulls().create();
+
+        // OkHttp
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .addInterceptor(new Interceptor() { // 모든 request시 header 보내기.
+                    @NotNull
+                    @Override
+                    public okhttp3.Response intercept(@NotNull Chain chain) throws IOException {
+                        Request originalRequest = chain.request();
+                        Request newRequest = originalRequest.newBuilder()
+                                .addHeader("Interceptor-Header","jkl")
+                                .build();
+
+                        return chain.proceed(newRequest);
+                    }
+                })
+                .addInterceptor(loggingInterceptor)
+                .build();
+
+        // Retrofit
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://jsonplaceholder.typicode.com/")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .client(okHttpClient) // client를 OkHttp로 함.
+                .build();
+
+        jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
     }
 
     private void initListener(){
         btnTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                getPosts();
+                getPosts();
 //                getComments();
 //                createPost();
 //                updatePost();
-                deletePost();
+//                deletePost();
             }
         });
     }
@@ -162,7 +209,12 @@ public class MainActivity extends AppCompatActivity {
     private void updatePost() {
         Post post = new Post(12, null, "updateTest");
 
-        Call<Post> call = jsonPlaceHolderApi.patchPost(1, post);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Map-Header1","def");
+        headers.put("Map-Header2","ghi");
+
+//        Call<Post> call = jsonPlaceHolderApi.putPost("abc",1, post);
+        Call<Post> call = jsonPlaceHolderApi.patchPost(headers,1, post);
 
         call.enqueue(new Callback<Post>() {
             @Override

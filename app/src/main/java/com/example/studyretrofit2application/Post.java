@@ -1,11 +1,13 @@
 package com.example.studyretrofit2application;
 
+import android.content.Intent;
+
 import com.google.gson.annotations.SerializedName;
 
 public class Post {
 
     private int userId;
-    private int id;
+    private Integer id;
     private String title;
     @SerializedName("body") // json paser에게 넘어갈 key
     private String text;
@@ -24,7 +26,7 @@ public class Post {
         this.userId = userId;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

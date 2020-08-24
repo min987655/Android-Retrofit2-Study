@@ -6,6 +6,8 @@ import com.google.gson.GsonBuilder;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -15,6 +17,9 @@ import retrofit2.http.Field;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
+import retrofit2.http.HeaderMap;
+import retrofit2.http.Headers;
 import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
@@ -87,26 +92,30 @@ public interface JsonPlaceHolderApi {
 ///////////////////////////////////////////////////////////////////////////// UPDATE
 
     // null값 그대로 update (ex) 기존.title : 제목 ==> put.title : null ==> 출력값.title : null
-    @PUT("posts/{id}")
-    Call<Post> putPost(@Path("id") int id, @Body Post post);
+//    @PUT("posts/{id}")
+//    Call<Post> putPost(@Path("id") int id, @Body Post post);
 
     // null값 변경되지 않음 기존값으로 대체 (ex) 기존.title : 제목 ==> patch.title : null ==> 출력값.title : 제목
-    @PATCH("posts/{id}")
-    Call<Post> patchPost(@Path("id") int id, @Body Post post);
+//    @PATCH("posts/{id}")
+//    Call<Post> patchPost(@Path("id") int id, @Body Post post);
 
 ///////////////////////////////////////////////////////////////////////////// DELETE
 
     @DELETE("posts/{id}")
     Call<Void> deletePost(@Path("id") int id);
 
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////// header
 
-    // json 형태로 변환 (patch시에도 null 값 덮어 씌움)
-    Gson gson = new GsonBuilder().serializeNulls().create();
+    @Headers({"Static-Header1: 123 ","Static-Header2: 456"})
+    @PUT("posts/{id}")
+    Call<Post> putPost( @Header("Dynamic-Header") String header,
+                        @Path("id") int id,
+                        @Body Post post);
 
-    Retrofit retrofit = new Retrofit.Builder()
-            .baseUrl("https://jsonplaceholder.typicode.com/")
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build();
+    @PATCH("posts/{id}")
+    Call<Post> patchPost( @HeaderMap Map<String, String> headers,
+                          @Path("id") int id,
+                          @Body Post post);
+
+
 }
